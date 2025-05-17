@@ -1,0 +1,188 @@
+Tender File Parser Error Handling Examples
+==========================================
+
+1. Missing Required Columns
+--------------------------
+Example CSV:
+    tender_name,email
+    Project A,projecta@email.com
+    # (bidding_date column is missing)
+Error:
+    Missing required columns: bidding_date
+
+Example DOCX:
+    | tender_name | email |
+    | Project A   | projecta@email.com |
+Error:
+    Skipping row 2 in table 1 due to missing columns.
+
+2. Empty File
+-------------
+Example CSV:
+    (file is empty)
+Error:
+    CSV file is empty.
+
+Example DOCX:
+    (file is empty or table is empty)
+Error:
+    No tables found in Word file. OR Table 1 is empty.
+
+3. Invalid Email Format
+----------------------
+Example CSV:
+    tender_name,email,bidding_date
+    Project A,not-an-email,25/05/2025
+Warning:
+    Warning: Row 1 skipped due to: Invalid email
+
+Example DOCX:
+    | tender_name | email         | bidding_date |
+    | Project A   | not-an-email | 25/05/2025   |
+Warning:
+    Row 2 in table 1 skipped due to: Invalid email
+
+4. Invalid Date Format
+---------------------
+Example CSV:
+    tender_name,email,bidding_date
+    Project A,projecta@email.com,25-05-2025
+Warning:
+    Warning: Row 1 skipped due to: Invalid bidding_date
+
+Example DOCX:
+    | tender_name | email              | bidding_date |
+    | Project A   | projecta@email.com | 25-05-2025   |
+Warning:
+    Row 2 in table 1 skipped due to: Invalid bidding_date
+
+5. No Valid Tenders After Validation
+-----------------------------------
+Example CSV:
+    tender_name,email,bidding_date
+    Project A,not-an-email,invalid-date
+Error:
+    No valid tenders found in CSV file.
+
+Example DOCX:
+    | tender_name | email         | bidding_date |
+    | Project A   | not-an-email | invalid-date |
+Error:
+    No valid tenders found in Word file.
+
+6. Row Length Mismatch (Word Table)
+-----------------------------------
+Example Word Table:
+    | tender_name | email | bidding_date |
+    | Project A   | projecta@email.com  |
+Warning:
+    Skipping row 2 in table 1 due to column mismatch.
+
+7. Missing Columns in Word Table Row
+-----------------------------------
+Example Word Table:
+    | tender_name | email | bidding_date |
+    | Project A   | projecta@email.com  | (missing bidding_date)
+Warning:
+    Skipping row 2 in table 1 due to missing columns.
+
+8. Empty Field
+--------------
+Example CSV:
+    tender_name,email,bidding_date
+    ,projecta@email.com,25/05/2025
+    Project B,,26/05/2025
+    Project C,projectc@email.com,
+Warning:
+    Warning: Row 1 skipped due to: Empty tender_name
+    Warning: Row 2 skipped due to: Empty email
+    Warning: Row 3 skipped due to: Empty bidding_date
+
+Example DOCX:
+    | tender_name | email              | bidding_date |
+    |             | projecta@email.com | 25/05/2025   |
+    | Project B   |                    | 26/05/2025   |
+    | Project C   | projectc@email.com |              |
+Warning:
+    Row 2 in table 1 skipped due to: Empty tender_name
+    Row 3 in table 1 skipped due to: Empty email
+    Row 4 in table 1 skipped due to: Empty bidding_date
+
+9. Duplicate Tender
+------------------
+Example CSV:
+    tender_name,email,bidding_date
+    Project A,projecta@email.com,25/05/2025
+    Project A,projecta@email.com,26/05/2025
+Warning:
+    Warning: Row 2 skipped due to: Duplicate tender (name+email)
+
+Example DOCX:
+    | tender_name | email              | bidding_date |
+    | Project A   | projecta@email.com | 25/05/2025   |
+    | Project A   | projecta@email.com | 26/05/2025   |
+Warning:
+    Row 3 in table 1 skipped due to: Duplicate tender (name+email)
+
+10. Date in the Past
+-------------------
+Example CSV:
+    tender_name,email,bidding_date
+    Project A,projecta@email.com,01/01/2020
+Warning:
+    Warning: Row 1 skipped due to: Bidding date is in the past
+
+Example DOCX:
+    | tender_name | email              | bidding_date |
+    | Project A   | projecta@email.com | 01/01/2020   |
+Warning:
+    Row 2 in table 1 skipped due to: Bidding date is in the past
+
+11. Extra Column
+----------------
+Example CSV:
+    tender_name,email,bidding_date,extra_col
+    Project A,projecta@email.com,25/05/2025,Extra
+Warning:
+    (No error, but extra columns are ignored)
+
+Example DOCX:
+    | tender_name | email              | bidding_date | extra_col |
+    | Project A   | projecta@email.com | 25/05/2025   | Extra     |
+Warning:
+    (No error, but extra columns are ignored)
+
+12. Unsupported File Type
+------------------------
+Example:
+    File extension: .pdf
+Error:
+    Unsupported file type: .pdf. Supported types: .csv, .xlsx, .xls, .docx
+
+13. File Not Found
+-----------------
+Example:
+    python tender_file_parser.py not_exist.csv
+Error:
+    File not found: not_exist.csv
+
+14. General Exception (Corrupted File, etc.)
+--------------------------------------------
+Example:
+    (Corrupted or unreadable file)
+Error:
+    Error: <detailed error message>
+    (Stack trace printed)
+
+
+## TO RUN AND TEST THE SCRIPT
+
+python Tender/tender_file_parser.py Tender/tender_testing_file/csv/missing_column.csv
+python Tender/tender_file_parser.py Tender/tender_testing_file/csv/empty_file.csv
+python Tender/tender_file_parser.py Tender/tender_testing_file/csv/invalid_email.csv
+python Tender/tender_file_parser.py Tender/tender_testing_file/csv/invalid_date.csv
+python Tender/tender_file_parser.py Tender/tender_testing_file/csv/all_invalid.csv
+python Tender/tender_file_parser.py Tender/tender_testing_file/csv/empty_field.csv
+python Tender/tender_file_parser.py Tender/tender_testing_file/csv/duplicate.csv
+python Tender/tender_file_parser.py Tender/tender_testing_file/csv/date_in_past.csv
+python Tender/tender_file_parser.py Tender/tender_testing_file/csv/extra_column.csv
